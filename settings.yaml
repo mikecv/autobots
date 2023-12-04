@@ -1,0 +1,10 @@
+# Main application settings.
+app:
+  APP_NAME:     "autobots"
+  APP_VERSION:  "0.0.1"
+# Logging settings.
+log:
+  DEF_LEVEL:     10
+  MAX_SIZE:      5000000
+  MAX_FILES:     5
+  
