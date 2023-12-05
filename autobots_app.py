@@ -6,57 +6,50 @@ import argparse
 import dotsi  # type: ignore
 import json
 import logging
+import logging.handlers
 import os
+import time
 
 import app_settings
-from app_logging import setup_logging
 
-
+# Get application logger.
 log = logging.getLogger(__name__)
 
 # Load application settings.
 settings = dotsi.Dict(app_settings.load("./settings.yaml"))
 
-# Initialise app name and version from settings.
-app_name = settings.app.APP_NAME
-app_version = settings.app.APP_VERSION
-
-
 def main(ePath):
-
-    # log = logging.getLogger(__name__)
 
     # # Load application settings.
     # settings = dotsi.Dict(app_settings.load("./settings.yaml"))
 
-    # # Initialise app name and version from settings.
-    # app_name = settings.app.APP_NAME
-    # app_version = settings.app.APP_VERSION
+    # Initialise app name and version from settings.
+    app_name = settings.app.APP_NAME
+    app_version = settings.app.APP_VERSION
 
-    # Setup the application logger.
-    setup_logging(app_name)
+    # Create logger. Use rotating log files.
+    log.setLevel(settings.log.DEF_LEVEL)
+    handler = logging.handlers.RotatingFileHandler(app_name + ".log", maxBytes=settings.log.MAX_SIZE, backupCount=settings.log.MAX_FILES)
+    handler.setFormatter(logging.Formatter(fmt=f"%(asctime)s.%(msecs)03d [{app_name}] [%(levelname)-8s] %(message)s", datefmt="%Y%m%d-%H:%M:%S", style="%"))
+    logging.Formatter.converter = time.localtime
+    log.addHandler(handler)
 
     log.info(f"Initialising application: {app_name}, version: {app_version}")
-
-    # # Open json file.
-    # jf = open('./5174-Fr-0000-1.json')
-    # json_data = json.load(jf)
-    # for i in json_data['events']:
-    #     print(i)
-    #     log.info(f"Event string : {i}")
-
     log.info(f"Events path: {ePath}")
-    print(f"Events path: {ePath}")
+
+    # Traverse event directory structure looking for event files.
+    traverse_directory(ePath)
 
 def process_json_file(file_path):
     with open(file_path, 'r') as file:
         try:
             data = json.load(file)
-            # Do something with the JSON data
-            print(f"Processing JSON file: {file_path}")
-            print(data)
+            # Process the json event data.
+            log.info(f"Processing JSON file: {file_path}")
+            for i in data['events']:
+                log.info(i)
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON in file {file_path}: {e}")
+            log.errpr(f"Error decoding JSON in file {file_path}: {e}")
 
 def traverse_directory(root_dir):
     for root, dirs, files in os.walk(root_dir):
@@ -77,7 +70,7 @@ if __name__ == "__main__":
     ePath = os.getcwd()
 
     if args.version:
-        print(f"Program version : {app_version}")
+        print(f"Program version : {settings.app.APP_VERSION}")
     else:
         if args.events:
             ePath = args.events
