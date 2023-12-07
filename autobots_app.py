@@ -8,6 +8,7 @@ import json
 import logging
 import logging.handlers
 import os
+import re
 import time
 
 import app_settings
@@ -46,10 +47,20 @@ def process_json_file(file_path):
             data = json.load(file)
             # Process the json event data.
             log.info(f"Processing JSON file: {file_path}")
-            for i in data['events']:
-                log.info(i)
+            # Get period for trip.
+            trip_period = data['category']
+            log.debug(f"Process period: {trip_period}")
+            # Get the trip details.
+            cntrl_id = data['_trip_info']['controller_id']
+            log.debug(f"Controller Id: {cntrl_id}")
+            # Process event data in the trip.
+            for event in data['events']:
+                log.debug(f"Trip event string: {event}")
+                event_type, event_params = parse_event(event)
+                log.debug(f"Found event: {event_type}")
+                log.debug(f"Event arguments: {event_params}")
         except json.JSONDecodeError as e:
-            log.errpr(f"Error decoding JSON in file {file_path}: {e}")
+            log.error(f"Error decoding JSON in file: {file_path}: {e}")
 
 def traverse_directory(root_dir):
     for root, dirs, files in os.walk(root_dir):
@@ -57,6 +68,19 @@ def traverse_directory(root_dir):
             if file.endswith('.json'):
                 file_path = os.path.join(root, file)
                 process_json_file(file_path)
+
+def parse_event(event):
+    event_pattern = re.compile(r'([0-9]{1,2}/[0-9]{2}/[0-9]{4}) ([0-9]{1,2}:[0-9]{2}:[0-9]{2}) .*?\,*?EVENT ([0-9]+) ([0-9]+) (.+)/(.+)/(.+)/([-0-9]+)/([0-9]+) (\w+) (.+)$', re.MULTILINE)
+    su = re.search(event_pattern, event)
+    if su:
+        event_type = su.group(10)
+        event_params = su.group(11)
+        return event_type, event_params
+    else:
+        # Error, could not parse the event string.
+        log.error("Could not parse event string")
+        return None, None
+        
 
 if __name__ == "__main__":
 
