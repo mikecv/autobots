@@ -56,7 +56,8 @@ def process_json_file(file_path):
             # Process event data in the trip.
             for event in data['events']:
                 log.debug(f"Trip event string: {event}")
-                event_type, event_params = parse_event(event)
+                utime, event_type, event_params = parse_event(event)
+                log.debug(f"Found event at: {utime}")
                 log.debug(f"Found event: {event_type}")
                 log.debug(f"Event arguments: {event_params}")
         except json.JSONDecodeError as e:
@@ -70,17 +71,19 @@ def traverse_directory(root_dir):
                 process_json_file(file_path)
 
 def parse_event(event):
-    event_pattern = re.compile(r'([0-9]{1,2}/[0-9]{2}/[0-9]{4}) ([0-9]{1,2}:[0-9]{2}:[0-9]{2}) .*?\,*?EVENT ([0-9]+) ([0-9]+) (.+)/(.+)/(.+)/([-0-9]+)/([0-9]+) (\w+) (.+)$', re.MULTILINE)
+    # Search for events with paramters.
+    event_pattern = re.compile(r'([0-9]{1,2}/[0-9]{2}/[0-9]{4}) ([0-9]{1,2}:[0-9]{2}:[0-9]{2}) .*?\,*?EVENT ([0-9]+) ([0-9]+) (.+)/(.+)/(.+)/([-0-9]+)/([0-9]+) (\w+) (.*)$', re.MULTILINE)
     su = re.search(event_pattern, event)
     if su:
         event_type = su.group(10)
         event_params = su.group(11)
-        return event_type, event_params
+        utime = su.group (4)     
+        return utime, event_type, event_params
     else:
         # Error, could not parse the event string.
         log.error("Could not parse event string")
-        return None, None
-        
+        return None, None, None
+
 
 if __name__ == "__main__":
 
