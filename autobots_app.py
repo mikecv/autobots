@@ -43,28 +43,57 @@ def main(ePath):
     traverse_directory(ePath)
 
 def process_json_file(file_path):
-    with open(file_path, 'r') as file:
+
+    # Get device mapping.
+    dmap_file = './data/device_map.json'
+    # Maps script devices to actual devices.
+    dev_map = get_device_mapping(dmap_file)
+    if dev_map is not None:
+        # We have a device map, so parse for events.
+        with open(file_path, 'r') as file:
+            try:
+                data = json.load(file)
+                # Process the json event data.
+                log.info(f"Processing JSON file: {file_path}")
+                # Get period for trip.
+                trip_period = data['category']
+                log.debug(f"Process period: {trip_period}")
+                # Get the trip details.
+                cntrl_id = data['_trip_info']['controller_id']
+                log.debug(f"Controller Id: {cntrl_id}")
+                cntrl_id = data['_trip_info']['controller_id']
+                dev_id = dev_map[cntrl_id]
+                log.debug(f"Mapped device Id: {dev_id}")
+                # Process event data in the trip.
+                for event in data['events']:
+                    log.debug(f"Trip event string: {event}")
+                    utime, event_type, event_params = parse_event(event)
+                    event_day = datetime.utcfromtimestamp(utime).strftime('%A')
+                    event_time = datetime.utcfromtimestamp(utime).strftime('%H:%M:%S')
+                    log.debug(f"Found event at: {utime} : {event_day} - {event_time}")
+                    log.debug(f"Found event: {event_type}")
+                    log.debug(f"Event arguments: {event_params}")
+            except json.JSONDecodeError as e:
+                log.error(f"Error decoding JSON event file: {file_path}: {e}")
+    else:
+        log.error(f"Error decoding JSON device mapping file: {dmap_file}: {e}")
+
+
+def get_device_mapping(dmap):
+ 
+    # Open JSON device mapping file and create dictionary
+    with open(dmap, 'r') as m_file:
         try:
-            data = json.load(file)
-            # Process the json event data.
-            log.info(f"Processing JSON file: {file_path}")
-            # Get period for trip.
-            trip_period = data['category']
-            log.debug(f"Process period: {trip_period}")
-            # Get the trip details.
-            cntrl_id = data['_trip_info']['controller_id']
-            log.debug(f"Controller Id: {cntrl_id}")
-            # Process event data in the trip.
-            for event in data['events']:
-                log.debug(f"Trip event string: {event}")
-                utime, event_type, event_params = parse_event(event)
-                event_day = datetime.utcfromtimestamp(utime).strftime('%A')
-                event_time = datetime.utcfromtimestamp(utime).strftime('%H:%M:%S')
-                log.debug(f"Found event at: {utime} : {event_day} - {event_time}")
-                log.debug(f"Found event: {event_type}")
-                log.debug(f"Event arguments: {event_params}")
+            mmap = json.load(m_file)
+            device_map = {}
+            # Populate dictionary with device mappings.
+            for device in mmap["controllers"]:
+                device_map[device] = mmap["controllers"][device]["id"]
+            log.debug(f"Device mapping file: {device_map}")
+            return device_map
         except json.JSONDecodeError as e:
-            log.error(f"Error decoding JSON in file: {file_path}: {e}")
+            log.error(f"Error decoding machine mapping file: {e}")
+            return None
 
 def traverse_directory(root_dir):
     for root, dirs, files in os.walk(root_dir):
