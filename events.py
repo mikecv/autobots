@@ -33,10 +33,14 @@ class All_events:
         # List of all events.
         self.all_events = []
 
+        # Total number of events.
+        self.total_events = 0
+
     def add_event(self, new_event: Event):
         """
         Add new event to list of all events.
         """
 
         self.all_events.append(new_event)
+        self.total_events += 1
     

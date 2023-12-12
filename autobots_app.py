@@ -11,19 +11,19 @@ import logging.handlers
 import os
 import time
 
-import app_settings
+from app_settings import load, week_days
 import events_parser
 
 # Get application logger.
 log = logging.getLogger(__name__)
 
 # Load application settings.
-settings = dotsi.Dict(app_settings.load("./settings.yaml"))
+settings = dotsi.Dict(load("./settings.yaml"))
 
 def main(ePath, dMap):
 
     # Load application settings.
-    settings = dotsi.Dict(app_settings.load("./settings.yaml"))
+    settings = dotsi.Dict(load("./settings.yaml"))
 
     # Initialise app name and version from settings.
     app_name = settings.app.APP_NAME
@@ -43,6 +43,16 @@ def main(ePath, dMap):
     # Traverse event directory structure looking for event files.
     event_parser = events_parser.Events_parser(log, ePath, dMap)
     event_parser.traverse_path()
+
+    # Get all the event data totals.
+    print(f"Total number of events: {event_parser.event_data.total_events}")
+
+    # Get data by day.
+    for day in week_days:
+        print(f"Events for {day}")
+        for ev in event_parser.event_data.all_events:
+            if ev.day == day:
+                print(f"   {ev.event_type}")
 
 
 if __name__ == "__main__":

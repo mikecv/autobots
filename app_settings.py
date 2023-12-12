@@ -5,7 +5,6 @@ Application settings.
 import dotsi  # type: ignore
 import yaml  # type: ignore
 
-
 def load(settings_file: str) -> dotsi.Dict:
     """
     Load yaml settings file and return settings dictionary.
@@ -18,3 +17,14 @@ def load(settings_file: str) -> dotsi.Dict:
     # Read the settings file and return a dictionary of settings.
     with open(settings_file, "r") as sf:
         return yaml.safe_load(sf)
+
+
+week_days = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+            ]
