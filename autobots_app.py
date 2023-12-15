@@ -5,7 +5,6 @@ Autobot event lists.
 import argparse
 from datetime import datetime
 import dotsi  # type: ignore
-import json
 import logging
 import logging.handlers
 import os
@@ -77,3 +76,5 @@ if __name__ == "__main__":
         if args.map:
             dMap = args.map
             main(ePath, dMap)
+        else:
+            print("Require a device mapping file, \"-m option\".")
