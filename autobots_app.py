@@ -48,10 +48,12 @@ def main(ePath, dMap):
 
     # Get data by day.
     for day in week_days:
+        print("="*80)
         print(f"Events for {day}")
         for ev in event_parser.event_data.all_events:
             if ev.day == day:
-                print(f"   {ev.event_type}")
+                print(f"   {ev.time} : {ev.event_type}, {ev.params}")
+    print("="*80)
 
 
 if __name__ == "__main__":

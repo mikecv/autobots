@@ -42,11 +42,14 @@ class Events_parser:
         # Traverse through folders starting at root.
         for root, dirs, files in os.walk(self.root_dir):
             for file in files:
+                # Get the json file number as used to work out time offset.
+                # Offset calculated from first file in series.
+                file_num = file.split('-')[3].split('.')[0]
                 if file.endswith('.json'):
                     file_path = os.path.join(root, file)
-                    self.process_json_file(file_path)
+                    self.process_json_file(file_path, int(file_num))
 
-    def process_json_file(self, file_path):
+    def process_json_file(self, file_path, file_num):
         # Parse the JSON file of trips.
         with open(file_path, 'r') as file:
             try:
@@ -56,6 +59,9 @@ class Events_parser:
                 # Get period for trip.
                 trip_period = data['category']
                 self.log.debug(f"Process period: {trip_period}")
+                period_day = trip_period.split('; ')[0]
+                period_time = trip_period.split('; ')[1].split()[0]
+                period_time = int(period_time) * 36
                 # Get the trip details.
                 cntrl_id = data['_trip_info']['controller_id']
                 self.log.debug(f"Controller Id: {cntrl_id}")
@@ -63,12 +69,38 @@ class Events_parser:
                 dev_id = self.dev_map[cntrl_id]
                 self.log.debug(f"Mapped device Id: {dev_id}")
                 # Process event data in the trip.
+                ev_first = True
                 for event in data['events']:
+                    # The time of the event comes from the period in the file name.
+                    # The time of events is the offset from the previous event in the file.
+                    # The starting time of the first event in the first file comes from the start of
+                    # the period.
                     self.log.debug(f"Trip event string: {event}")
+
+                    # Parse the event string.
                     utime, event_type, event_params = self.parse_event(event)
-                    event_day = datetime.utcfromtimestamp(utime).strftime('%A')
-                    event_time = datetime.utcfromtimestamp(utime).strftime('%H:%M:%S')
-                    self.log.debug(f"Found event at: {utime} : {event_day} - {event_time}")
+
+                    # Work out the starting time for the offset.
+                    # Check if this is the first file number in the series.
+                    if file_num == 1:
+                        # First file so get from start of the period.
+                        # Followed by time offset from previous event.
+                        if ev_first is True:
+                            st_time = period_time
+                            st_evt_time = utime
+                            fst_offset = st_time
+                            ev_first = False
+                        else:
+                            st_time = fst_offset + utime - st_evt_time
+                            st_evt_time = utime
+                    else:
+                        # Not the first file so get start time from previous event.
+                        st_time = utime - st_evt_time
+                        st_evt_time = utime
+
+                    event_day = period_day
+                    event_time = datetime.utcfromtimestamp(st_time).strftime('%H:%M:%S')
+                    self.log.debug(f"Found event at: {event_day} - {event_time}")
                     self.log.debug(f"Found event: {event_type}")
                     self.log.debug(f"Event arguments: {event_params}")
                     # Create the event object and add to list of all events.
