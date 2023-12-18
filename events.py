@@ -4,7 +4,7 @@ class Event:
         """
         Class of an event instance.
         Args:
-            device:         The device's serial no.
+            device:         The device's serial no string.
             day:            The day of the week the event occurred.
             time:           The time of day for the event.
 

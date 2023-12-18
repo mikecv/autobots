@@ -1,5 +1,6 @@
 """
 Autobot event lists.
+Aligned with format of event files for Autobot script.
 """
 
 import argparse
@@ -12,6 +13,7 @@ import time
 
 from app_settings import load, week_days
 import events_parser
+import reports
 
 # Get application logger.
 log = logging.getLogger(__name__)
@@ -19,7 +21,7 @@ log = logging.getLogger(__name__)
 # Load application settings.
 settings = dotsi.Dict(load("./settings.yaml"))
 
-def main(ePath, dMap):
+def main(ePath, dMap, cntrl):
 
     # Load application settings.
     settings = dotsi.Dict(load("./settings.yaml"))
@@ -38,22 +40,27 @@ def main(ePath, dMap):
     log.info(f"Initialising application: {app_name}, version: {app_version}")
     log.info(f"Events path: {ePath}")
     log.info(f"Device map: {dMap}")
+    log.info(f"Report for controller: {cntrl}")
 
     # Traverse event directory structure looking for event files.
     event_parser = events_parser.Events_parser(log, ePath, dMap)
     event_parser.traverse_path()
 
-    # Get all the event data totals.
-    print(f"Total number of events: {event_parser.event_data.total_events}")
+    # # Get data by day.
+    # for day in week_days:
+    #     print("="*80)
+    #     print(f"Events for {day}")
+    #     print("="*80)
+    #     for ev in event_parser.event_data.all_events:
+    #         if ev.day == day:
+    #             print(f"   {ev.time} : {ev.event_type:20} : {ev.params}")
+    # print("="*80)
 
-    # Get data by day.
-    for day in week_days:
-        print("="*80)
-        print(f"Events for {day}")
-        for ev in event_parser.event_data.all_events:
-            if ev.day == day:
-                print(f"   {ev.time} : {ev.event_type}, {ev.params}")
-    print("="*80)
+    # Get data by controller ID.
+    if cntrl is not None:
+        reports.report_by_device(event_parser, cntrl)
+    # for cntrl in event_parser.dev_map:
+    #     reports.report_by_device(event_parser, event_parser.dev_map[cntrl])
 
 
 if __name__ == "__main__":
@@ -62,6 +69,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Autobot events scraper.")
     parser.add_argument("-d", "--dir", help="Autobot events directory.")
     parser.add_argument("-m", "--map", help="Device mapping file.")
+    parser.add_argument("-c", "--cntrl", help="Report for a controller ID.")
     parser.add_argument("-v", "--version", help="Program version.", action="store_true")
     args = parser.parse_args()
 
@@ -77,6 +85,8 @@ if __name__ == "__main__":
             ePath = args.dir
         if args.map:
             dMap = args.map
-            main(ePath, dMap)
+        if args.cntrl:
+            cntrl = args.cntrl
+            main(ePath, dMap, cntrl)
         else:
             print("Require a device mapping file, \"-m option\".")

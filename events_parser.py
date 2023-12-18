@@ -100,6 +100,7 @@ class Events_parser:
 
                     event_day = period_day
                     event_time = datetime.utcfromtimestamp(st_time).strftime('%H:%M:%S')
+                    self.log.debug(f"Found event for controller: {dev_id}")
                     self.log.debug(f"Found event at: {event_day} - {event_time}")
                     self.log.debug(f"Found event: {event_type}")
                     self.log.debug(f"Event arguments: {event_params}")
