@@ -85,8 +85,8 @@ if __name__ == "__main__":
             ePath = args.dir
         if args.map:
             dMap = args.map
+        else:
+            print("Require a device mapping file, \"-m option\".")
         if args.cntrl:
             cntrl = args.cntrl
             main(ePath, dMap, cntrl)
-        else:
-            print("Require a device mapping file, \"-m option\".")

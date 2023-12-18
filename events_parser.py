@@ -1,4 +1,5 @@
 from datetime import datetime
+import glob
 import json
 import logging
 import os
@@ -41,15 +42,18 @@ class Events_parser:
         self.log.debug(f"Traversing root path: {self.root_dir}")
         # Traverse through folders starting at root.
         for root, dirs, files in os.walk(self.root_dir):
-            for file in files:
+            # Initialise time to pass to next file for time offset.
+            nxt_time = 0
+            # for file in files:
+            for file in sorted(filter(os.path.isfile, glob.glob(self.root_dir + '*') ) ):
                 # Get the json file number as used to work out time offset.
                 # Offset calculated from first file in series.
                 file_num = file.split('-')[3].split('.')[0]
                 if file.endswith('.json'):
                     file_path = os.path.join(root, file)
-                    self.process_json_file(file_path, int(file_num))
+                    nxt_time = self.process_json_file(file, int(file_num), nxt_time)
 
-    def process_json_file(self, file_path, file_num):
+    def process_json_file(self, file_path, file_num, st_evt_time) -> int:
         # Parse the JSON file of trips.
         with open(file_path, 'r') as file:
             try:
@@ -95,8 +99,14 @@ class Events_parser:
                             st_evt_time = utime
                     else:
                         # Not the first file so get start time from previous event.
-                        st_time = utime - st_evt_time
-                        st_evt_time = utime
+                        if ev_first is True:
+                            st_time = period_time + st_evt_time
+                            st_evt_time = utime
+                            fst_offset = st_time
+                            ev_first = False
+                        else:
+                            st_time = fst_offset + utime - st_evt_time
+                            st_evt_time = utime
 
                     event_day = period_day
                     event_time = datetime.utcfromtimestamp(st_time).strftime('%H:%M:%S')
@@ -107,6 +117,9 @@ class Events_parser:
                     # Create the event object and add to list of all events.
                     this_event = events.Event(dev_id, event_day, event_time, event_type, event_params)
                     self.event_data.add_event(this_event)
+
+                # Return the starting time for the next file.
+                return st_evt_time
             except json.JSONDecodeError as e:
                 self.log.error(f"Error decoding JSON event file: {file_path}: {e}")
 
