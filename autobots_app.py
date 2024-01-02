@@ -59,8 +59,6 @@ def main(ePath, dMap, cntrl):
     # Get data by controller ID.
     if cntrl is not None:
         reports.report_by_device(event_parser, cntrl)
-    # for cntrl in event_parser.dev_map:
-    #     reports.report_by_device(event_parser, event_parser.dev_map[cntrl])
 
 
 if __name__ == "__main__":
@@ -90,3 +88,10 @@ if __name__ == "__main__":
         if args.cntrl:
             cntrl = args.cntrl
             main(ePath, dMap, cntrl)
+
+    """
+    Example usage for case of report by device ID.
+
+    $ python3 autobots_app.py -d ./data/Test/ -m ./device_map.json -c 11027
+    """
+    
