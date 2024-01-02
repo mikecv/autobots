@@ -59,7 +59,6 @@ class Events_parser:
             try:
                 data = json.load(file)
                 # Process the json event data.
-                self.log.info(f"Processing JSON file: {file_path}")
                 # Get period for trip.
                 trip_period = data['category']
                 self.log.debug(f"Process period: {trip_period}")
