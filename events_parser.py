@@ -39,19 +39,19 @@ class Events_parser:
         self.event_data = events.All_events()
 
     def traverse_path(self):
-        self.log.debug(f"Traversing root path: {self.root_dir}")
         # Traverse through folders starting at root.
         for root, dirs, files in os.walk(self.root_dir):
             # Initialise time to pass to next file for time offset.
             nxt_time = 0
-            # for file in files:
-            for file in sorted(filter(os.path.isfile, glob.glob(self.root_dir + '*') ) ):
+            for file_name in files:
                 # Get the json file number as used to work out time offset.
+                file_path = os.path.join(root, file_name)
                 # Offset calculated from first file in series.
-                file_num = file.split('-')[3].split('.')[0]
-                if file.endswith('.json'):
-                    file_path = os.path.join(root, file)
-                    nxt_time = self.process_json_file(file, int(file_num), nxt_time)
+                file_num = file_path.split('-')[3].split('.')[0]
+                if file_name.endswith('.json'):
+                    file_path = os.path.join(root, file_name)
+                    self.log.debug(f"Processing event file: {file_path}")
+                    nxt_time = self.process_json_file(file_path, int(file_num), nxt_time)
 
     def process_json_file(self, file_path, file_num, st_evt_time) -> int:
         # Parse the JSON file of trips.
