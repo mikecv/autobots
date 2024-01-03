@@ -57,9 +57,13 @@ def main(ePath, dMap, cntrl):
     #             print(f"   {ev.time} : {ev.event_type:20} : {ev.params}")
     # print("="*80)
 
-    # Get data by controller ID.
+    # Get data by controller ID if specidied.
+    # If None then report for all controllers.
     if cntrl is not None:
         reports.report_by_device(settings, event_parser, cntrl)
+    else:
+        for dev in list(event_parser.dev_map.values()):
+            reports.report_by_device(settings, event_parser, dev)
 
 
 if __name__ == "__main__":
@@ -74,6 +78,7 @@ if __name__ == "__main__":
 
     # Defaults.
     ePath = os.getcwd()
+    ctrl = None
 
     if args.version:
         print(f"Program version : {settings.app.APP_VERSION}")
