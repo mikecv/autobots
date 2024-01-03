@@ -41,6 +41,7 @@ def main(ePath, dMap, cntrl):
     log.info(f"Events path: {ePath}")
     log.info(f"Device map: {dMap}")
     log.info(f"Report for controller: {cntrl}")
+    log.info(f"Reporting event exceptions: {settings.report.EXECEPTIONS}")
 
     # Traverse event directory structure looking for event files.
     event_parser = events_parser.Events_parser(log, ePath, dMap)
@@ -58,7 +59,7 @@ def main(ePath, dMap, cntrl):
 
     # Get data by controller ID.
     if cntrl is not None:
-        reports.report_by_device(event_parser, cntrl)
+        reports.report_by_device(settings, event_parser, cntrl)
 
 
 if __name__ == "__main__":
@@ -90,7 +91,7 @@ if __name__ == "__main__":
             main(ePath, dMap, cntrl)
 
     """
-    Example usage for case of report by device ID.
+    Example usage for case of report by device ID (11027).
 
     $ python3 autobots_app.py -d ./data/Test/ -m ./device_map.json -c 11027
     """

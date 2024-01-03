@@ -7,4 +7,10 @@ log:
   DEF_LEVEL:     10
   MAX_SIZE:      5000000
   MAX_FILES:     5
-  
+# Event exeptions, i.e. events excluded from reporting.
+report:
+  EXECEPTIONS:
+                - "REPORT"
+                - "HARDWARE"
+                - "CHECKLIST"
+                - "XSIDLESTART"
