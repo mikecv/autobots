@@ -41,7 +41,7 @@ def main(ePath, dMap, cntrl, day):
     log.info(f"Events path: {ePath}")
     log.info(f"Device map: {dMap}")
     log.info(f"Report for controller: {cntrl}")
-    log.info(f"Reporting event exceptions: {settings.report.EXECEPTIONS}")
+    log.info(f"Reporting event exceptions: {settings.report.EXCEPTIONS}")
 
     # Traverse event directory structure looking for event files.
     event_parser = events_parser.Events_parser(log, ePath, dMap)

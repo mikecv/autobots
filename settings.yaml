@@ -9,7 +9,11 @@ log:
   MAX_FILES:     5
 # Event exeptions, i.e. events excluded from reporting.
 report:
-  EXECEPTIONS:
+  TRIP_EVENTS:
+                - "SIGNON"
+                - "TRIP"
+                - "TRIPSUMMARY"
+  EXCEPTIONS:
                 - "REPORT"
                 - "HARDWARE"
                 - "CHECKLIST"
